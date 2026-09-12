@@ -1,0 +1,26 @@
+services:
+  dumbproxy-socks:
+    image: ghcr.io/senseunit/dumbproxy:1.51.1-alpine
+    container_name: tempkey-dumbproxy-socks
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    command:
+      - -bind-address=:1080
+      - -mode=socks5
+      - -auth=hmac://
+
+    ports:
+      - "1080:1080"
+
+    networks:
+      - templink-network
+
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  templink-network:
+    external: true
