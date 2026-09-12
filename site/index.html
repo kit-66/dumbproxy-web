@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Временный доступ
+    </title>
+
+
+    <style>
+
+        /*
+         * ----------------------------------------------------
+         * Основные настройки страницы
+         * ----------------------------------------------------
+         */
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+
+            background: #111;
+
+            color: #eee;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+
+        /*
+         * ----------------------------------------------------
+         * Основная карточка
+         * ----------------------------------------------------
+         */
+
+        .card {
+
+            width: 100%;
+
+            max-width: 420px;
+
+            padding: 24px;
+
+            background: #1b1b1b;
+
+            border-radius: 16px;
+
+            text-align: center;
+
+            box-shadow:
+                0 10px 40px
+                rgba(0, 0, 0, 0.35);
+        }
+
+
+        h1 {
+
+            margin:
+                0 0 8px;
+
+            font-size: 26px;
+        }
+
+
+        .subtitle {
+
+            margin-bottom: 20px;
+
+            color: #999;
+
+            font-size: 14px;
+        }
+
+
+        /*
+         * ----------------------------------------------------
+         * QR-код
+         * ----------------------------------------------------
+         */
+
+        #qr {
+
+            width: 220px;
+
+            height: 220px;
+
+            display: block;
+
+            margin: 20px auto;
+
+            padding: 8px;
+
+            background: #fff;
+
+            border-radius: 10px;
+        }
+
+
+        /*
+         * ----------------------------------------------------
+         * Данные подключения
+         * ----------------------------------------------------
+         */
+
+        .credential {
+
+            margin-top: 20px;
+
+            padding: 16px;
+
+            background: #252525;
+
+            border-radius: 10px;
+
+            text-align: left;
+        }
+
+
+        .row {
+
+            margin-bottom: 14px;
+        }
+
+
+        .row:last-child {
+
+            margin-bottom: 0;
+        }
+
+
+        .label {
+
+            margin-bottom: 4px;
+
+            color: #888;
+
+            font-size: 12px;
+        }
+
+
+        .value {
+
+            font-family: monospace;
+
+            font-size: 14px;
+
+            word-break: break-all;
+        }
+
+
+        /*
+         * ----------------------------------------------------
+         * Таймер
+         * ----------------------------------------------------
+         */
+
+        #timer {
+
+            margin-top: 20px;
+
+            color: #aaa;
+
+            font-size: 14px;
+        }
+
+
+        .expired {
+
+            color: #d66;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="card">
+
+
+    <h1>
+        Временный доступ
+    </h1>
+
+
+    <div class="subtitle">
+        Общий доступ к proxy
+    </div>
+
+
+    <!--
+        QR содержит готовый URL подключения.
+    -->
+
+    <img
+        id="qr"
+        src="/api/qr"
+        alt="QR-код"
+    >
+
+
+    <div class="credential">
+
+
+        <div class="row">
+
+            <div class="label">
+                Пользователь
+            </div>
+
+            <div
+                class="value"
+                id="username"
+            >
+                Загрузка...
+            </div>
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="label">
+                Пароль
+            </div>
+
+            <div
+                class="value"
+                id="password"
+            >
+                Загрузка...
+            </div>
+
+        </div>
+
+
+        <div class="row">
+
+            <div class="label">
+                Proxy
+            </div>
+
+            <div
+                class="value"
+                id="proxy"
+            >
+                Загрузка...
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <div id="timer">
+        Получение доступа...
+    </div>
+
+
+</div>
+
+
+<script>
+
+    /*
+     * ========================================================
+     * Состояние таймера
+     * ========================================================
+     */
+
+    let secondsLeft = 0;
+
+
+    /*
+     * ========================================================
+     * Получение текущего credential
+     * ========================================================
+     */
+
+    async function loadAccess() {
+
+        try {
+
+            const response = await fetch(
+                "/api/access",
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /*
+             * Заполняем данные пользователя.
+             */
+
+            document.getElementById(
+                "username"
+            ).textContent =
+                data.username;
+
+
+            document.getElementById(
+                "password"
+            ).textContent =
+                data.password;
+
+
+            document.getElementById(
+                "proxy"
+            ).textContent =
+                `${data.proxy_scheme}://` +
+                `${data.proxy_host}:` +
+                `${data.proxy_port}`;
+
+
+            /*
+             * Сохраняем оставшееся время.
+             */
+
+            secondsLeft =
+                data.expires_in;
+
+
+            /*
+             * Обновляем QR.
+             *
+             * Timestamp предотвращает использование
+             * старой картинки браузером из cache.
+             */
+
+            document.getElementById(
+                "qr"
+            ).src =
+                "/api/qr?t=" +
+                Date.now();
+
+
+            updateTimer();
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            document.getElementById(
+                "timer"
+            ).textContent =
+                "Не удалось получить доступ";
+        }
+    }
+
+
+    /*
+     * ========================================================
+     * Таймер
+     * ========================================================
+     */
+
+    function updateTimer() {
+
+        const timer =
+            document.getElementById(
+                "timer"
+            );
+
+
+        /*
+         * Credential закончился.
+         */
+
+        if (secondsLeft <= 0) {
+
+            timer.textContent =
+                "Срок действия истёк";
+
+
+            timer.classList.add(
+                "expired"
+            );
+
+
+            /*
+             * Просим сервер выдать новый.
+             *
+             * Новый credential будет создан
+             * только после истечения старого.
+             */
+
+            setTimeout(
+                loadAccess,
+                1000
+            );
+
+
+            return;
+        }
+
+
+        timer.classList.remove(
+            "expired"
+        );
+
+
+        const minutes =
+            Math.floor(
+                secondsLeft / 60
+            );
+
+
+        const seconds =
+            secondsLeft % 60;
+
+
+        timer.textContent =
+            `Доступ действителен ещё ` +
+            `${minutes}:` +
+            `${String(seconds).padStart(2, "0")}`;
+
+
+        secondsLeft--;
+
+
+        setTimeout(
+            updateTimer,
+            1000
+        );
+    }
+
+
+    /*
+     * ========================================================
+     * Запуск
+     * ========================================================
+     */
+
+    loadAccess();
+
+</script>
+
+
+</body>
+
+</html>
