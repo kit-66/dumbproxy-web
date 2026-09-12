@@ -16,5 +16,9 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    command:
+      - -bind-address=:1080
+      - -mode=socks5
+      - -auth=hmac://
     ports:
       - "1080:1080"
