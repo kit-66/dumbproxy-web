@@ -9,3 +9,10 @@ services:
       - "3001:3000"
     volumes:
       - ./site:/app/site:ro
+    networks:
+      - tempkey-network
+    security_opt:
+      - no-new-privileges:true
+networks:
+  templink-network:
+    external: true
