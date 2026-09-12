@@ -10,7 +10,7 @@ services:
     volumes:
       - ./site:/app/site:ro
     networks:
-      - tempkey-network
+      - templink-network
     security_opt:
       - no-new-privileges:true
 networks:
