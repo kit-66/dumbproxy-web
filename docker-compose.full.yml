@@ -1,0 +1,20 @@
+services:
+  dumbproxy-web:
+    image: comradekit66/dumbproxy-web:1.0.0
+    container_name: dumbproxy-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./site:/app/site:ro
+
+  tempkey-dumbproxy:
+    image: ghcr.io/senseunit/dumbproxy:1.51.1-alpine
+    container_name: tempkey-dumbproxy-socks
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "1080:1080"
