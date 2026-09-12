@@ -1,7 +1,7 @@
 services:
   dumbproxy-socks:
     image: ghcr.io/senseunit/dumbproxy:1.51.1-alpine
-    container_name: tempkey-dumbproxy-socks
+    container_name: templink-dumbproxy-socks
     restart: unless-stopped
 
     env_file:
