@@ -16,6 +16,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    entrypoint:
+      - /dumbproxy
     command:
       - -bind-address=:1080
       - -mode=socks5
