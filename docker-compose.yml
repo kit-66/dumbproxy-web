@@ -11,7 +11,7 @@ services:
   # ----------------------------------------------------------
 
   dumbproxy-web:
-    build: .
+    image: comradekit66/dumbproxy-web:latest
 
     container_name: dumbproxy-web
 
